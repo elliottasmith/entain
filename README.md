@@ -1,3 +1,47 @@
+## Available Endpoints
+
+1. Make a request for races... 
+
+```bash
+curl -X "POST" "http://localhost:8000/v1/list-races" \
+     -H 'Content-Type: application/json' \
+     -d $'{
+            "filter": {
+               "visibleOnly": true
+            },
+            "order": {
+               "field": "advertised_start_time",
+               "direction": "ASC"
+            }
+         }'
+```
+
+2. Make a request for a single race by id...
+
+```bash
+curl -X "POST" "http://localhost:8000/v1/get-race" \
+     -H 'Content-Type: application/json' \
+     -d $'{
+            "id": 45
+         }'
+```
+
+3. Make a request for events... 
+
+```bash
+curl -X "POST" "http://localhost:8000/v1/list-events" \
+     -H 'Content-Type: application/json' \
+     -d $'{
+            "filter": {
+               "visibleOnly": true
+            },
+            "order": {
+               "field": "advertised_start_time",
+               "direction": "DESC"
+            }
+         }'
+```
+
 ## Entain BE Technical Test
 
 This test has been designed to demonstrate your ability and understanding of technologies commonly used at Entain. 

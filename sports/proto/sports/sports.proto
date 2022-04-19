@@ -1,0 +1,75 @@
+syntax = "proto3";
+package sports;
+
+option go_package = "/sports";
+
+import "google/protobuf/timestamp.proto";
+
+service Sports {
+  // ListEvents will return a collection of all events.
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+}
+
+/* Requests/Responses */
+
+message ListEventsRequest {
+  ListEventsRequestFilter filter = 1;
+  ListEventsRequestOrder order = 2;
+}
+
+// Response to ListEvents call.
+message ListEventsResponse {
+  repeated Event events = 1;
+}
+
+// Filter for listing events.
+message ListEventsRequestFilter {
+  bool visible_only = 1;
+}
+
+// Order for listing events.
+message ListEventsRequestOrder {
+  string field = 1;
+  Direction direction = 2;
+}
+
+/* Resources */
+
+// An event resource.
+message Event {
+  // ID represents a unique identifier for the sport event.
+  int64 id = 1;
+  // SportType represents the style or code of sport being played
+  string sport_type = 2;
+  // League represents the body who governs the competition
+  string league = 3;
+  // Country represents country the game is being played
+  string country = 4;
+  // LocationID represents a unique identifier for the events location.
+  int64 location_id = 5;
+  // Name is the official name given to the event.
+  string name = 6;
+  // Round represents the round the event is in.
+  int64 round = 7;
+  // Game represents the game of the round the event is in.
+  int64 game = 8;
+  // Visible represents whether or not the event is visible.
+  bool visible = 9;
+  // AdvertisedStartTime is the time the event is advertised to start.
+  google.protobuf.Timestamp advertised_start_time = 10;
+  // Status indicates wether the event is open or closed
+  Status status = 11;
+}
+
+/* Enumerations */
+enum Direction {
+  // As SQLite defaults to ASC, I will use the same logic here for consistency
+  ASC = 0;
+  DESC = 1;
+}
+
+enum Status {
+  // Defaults to closed
+  CLOSED = 0;
+  OPEN = 1;
+}

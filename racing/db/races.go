@@ -102,9 +102,7 @@ func (r *racesRepo) applyOrder(query string, order *racing.ListRacesRequestOrder
 	return query
 }
 
-func (m *racesRepo) scanRaces(
-	rows *sql.Rows,
-) ([]*racing.Race, error) {
+func (m *racesRepo) scanRaces(rows *sql.Rows,) ([]*racing.Race, error) {
 	var races []*racing.Race
 
 	for rows.Next() {
@@ -126,10 +124,19 @@ func (m *racesRepo) scanRaces(
 
 		race.AdvertisedStartTime = ts
 
+		setStatus(&race, advertisedStart)
+
 		races = append(races, &race)
 	}
 
 	return races, nil
+}
+
+func setStatus(race *racing.Race, startTime time.Time) {
+	// Set race status to open if the start time is in the future
+	if (time.Now().Before(startTime)) {
+		race.Status = racing.Status_OPEN
+	}
 }
 
 func validateField(inputField string) bool {

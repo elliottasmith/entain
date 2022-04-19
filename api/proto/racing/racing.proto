@@ -55,6 +55,8 @@ message Race {
   bool visible = 5;
   // AdvertisedStartTime is the time the race is advertised to run.
   google.protobuf.Timestamp advertised_start_time = 6;
+  // Status indicates wether the race is open or closed
+  Status status = 7;
 }
 
 /* Enumerations */
@@ -62,4 +64,10 @@ enum Direction {
   // As SQLite defaults to ASC, I will use the same logic here for consistency
   ASC = 0;
   DESC = 1;
+}
+
+enum Status {
+  // Defaults to closed
+  CLOSED = 0;
+  OPEN = 1;
 }

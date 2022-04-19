@@ -14,6 +14,29 @@ type RacesRepo struct {
 	mock.Mock
 }
 
+// Get provides a mock function with given fields: id
+func (_m *RacesRepo) Get(id *int64) (*racing.Race, error) {
+	ret := _m.Called(id)
+
+	var r0 *racing.Race
+	if rf, ok := ret.Get(0).(func(*int64) *racing.Race); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*racing.Race)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*int64) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Init provides a mock function with given fields:
 func (_m *RacesRepo) Init() error {
 	ret := _m.Called()

@@ -1,10 +1,15 @@
 package db
 
 import (
+	"database/sql"
 	"testing"
+	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/elliottasmith/entain/racing/proto/racing"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"syreclabs.com/go/faker"
 )
 
 func TestApplyFilterEmpty(t *testing.T) {
@@ -100,4 +105,71 @@ func TestApplyOrderInvalidField(t *testing.T) {
 
 	// Assert query does not contain order clause.
 	assert.Equal(t, "SELECT * FROM races", query)
+}
+
+func TestScanRacesStatusClosed(t *testing.T) {
+	// Create RacesRepo without DB, not mocking SQL DB here.
+	rr := &racesRepo{}
+
+	// Create a mock race to be returned from the scan races function
+	mockRace := []*racing.Race{
+		{
+			Id: faker.RandomInt64(1, 10),
+			MeetingId: faker.RandomInt64(1, 10),
+			Name: faker.Team().Name(),
+			Number: faker.RandomInt64(1, 10),
+			Visible: faker.RandomInt64(0, 1) == 0,
+			AdvertisedStartTime: timestamppb.New((time.Now().AddDate(0, 0, -1))),
+			Status: racing.Status_CLOSED,
+		},
+	}
+
+	// To test scan races an sql row is generated use sqlmock (work around instead of creating complete mock database)
+	mockRows := sqlmock.NewRows([]string{"id", "meeting_id", "name", "number", "visible", "advertised_start_time"}).AddRow(mockRace[0].GetId(), mockRace[0].GetMeetingId(), mockRace[0].GetName(), mockRace[0].GetNumber(), mockRace[0].GetVisible(), mockRace[0].GetAdvertisedStartTime().AsTime())
+	sqlRows := mockRowsToSqlRows(mockRows)
+
+	// Call scan races with mock sql rows
+	races, err := rr.scanRaces(sqlRows)
+
+	// Assert mock race matches race result from scan races
+	assert.NoError(t, err)
+	assert.Equal(t, mockRace, races)
+}
+
+func TestScanRacesStatusOpen(t *testing.T) {
+	// Create RacesRepo without DB, not mocking SQL DB here.
+	rr := &racesRepo{}
+
+	// Create a mock race to be returned from the scan races function
+	mockRace := []*racing.Race{
+		{
+			Id: faker.RandomInt64(1, 10),
+			MeetingId: faker.RandomInt64(1, 10),
+			Name: faker.Team().Name(),
+			Number: faker.RandomInt64(1, 10),
+			Visible: faker.RandomInt64(0, 1) == 0,
+			AdvertisedStartTime: timestamppb.New((time.Now().AddDate(0, 0, 1))),
+			Status: racing.Status_OPEN,
+		},
+	}
+
+	// To test scan races an sql row is generated use sqlmock (work around instead of creating complete mock database)
+	mockRows := sqlmock.NewRows([]string{"id", "meeting_id", "name", "number", "visible", "advertised_start_time"}).AddRow(mockRace[0].GetId(), mockRace[0].GetMeetingId(), mockRace[0].GetName(), mockRace[0].GetNumber(), mockRace[0].GetVisible(), mockRace[0].GetAdvertisedStartTime().AsTime())
+	sqlRows := mockRowsToSqlRows(mockRows)
+
+	// Call scan races with mock sql rows
+	races, err := rr.scanRaces(sqlRows)
+
+	// Assert mock race matches race result from scan races
+	assert.NoError(t, err)
+	assert.Equal(t, mockRace, races)
+}
+
+// Helpers
+func mockRowsToSqlRows(mockRows *sqlmock.Rows) *sql.Rows {
+    db, mock, _ := sqlmock.New()
+    mock.ExpectQuery("select").WillReturnRows(mockRows)
+    rows, _ := db.Query("select")
+	db.Close()
+    return rows
 }

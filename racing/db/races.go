@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/elliottasmith/entain/racing/proto/racing"
 )
@@ -17,7 +18,7 @@ type RacesRepo interface {
 	Init() error
 
 	// List will return a list of races.
-	List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error)
+	List(filter *racing.ListRacesRequestFilter, order *racing.ListRacesRequestOrder) ([]*racing.Race, error)
 }
 
 type racesRepo struct {
@@ -42,7 +43,7 @@ func (r *racesRepo) Init() error {
 	return err
 }
 
-func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error) {
+func (r *racesRepo) List(filter *racing.ListRacesRequestFilter, order *racing.ListRacesRequestOrder) ([]*racing.Race, error) {
 	var (
 		err   error
 		query string
@@ -52,6 +53,8 @@ func (r *racesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race,
 	query = getRaceQueries()[racesList]
 
 	query, args = r.applyFilter(query, filter)
+
+	query = r.applyOrder(query, order)
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -91,6 +94,14 @@ func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFil
 	return query, args
 }
 
+func (r *racesRepo) applyOrder(query string, order *racing.ListRacesRequestOrder) string {
+	// Check that the input field validates and return the order by clause with the input field and direction
+	if validateField(order.GetField()) {
+		return fmt.Sprintf("%s ORDER BY %s %s", query, order.GetField(), order.GetDirection())
+	}
+	return query
+}
+
 func (m *racesRepo) scanRaces(
 	rows *sql.Rows,
 ) ([]*racing.Race, error) {
@@ -119,4 +130,17 @@ func (m *racesRepo) scanRaces(
 	}
 
 	return races, nil
+}
+
+func validateField(inputField string) bool {
+	// Slice of valid fields
+	validFields := []string{"id", "meeting_id", "name", "number", "visible", "advertised_start_time"}
+
+	// Validate that the input field is a valid field to prevent sql injection
+	for _, validField := range validFields {
+		if validField == inputField {
+			return true
+		}
+	}
+	return false
 }

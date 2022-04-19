@@ -14,6 +14,7 @@ service Racing {
 
 message ListRacesRequest {
   ListRacesRequestFilter filter = 1;
+  ListRacesRequestOrder order = 2;
 }
 
 // Response to ListRaces call.
@@ -26,6 +27,12 @@ message ListRacesRequestFilter {
   repeated int64 meeting_ids = 1;
   // VisibleOnly, if true will filter results that are visible only, by default all results will be returned.
   bool visible_only = 2;
+}
+
+// Order for listing races.
+message ListRacesRequestOrder {
+  string field = 1;
+  Direction direction = 2;
 }
 
 /* Resources */
@@ -46,3 +53,9 @@ message Race {
   google.protobuf.Timestamp advertised_start_time = 6;
 }
 
+/* Enumerations */
+enum Direction {
+  // As SQLite defaults to ASC, I will use the same logic here for consistency
+  ASC = 0;
+  DESC = 1;
+}

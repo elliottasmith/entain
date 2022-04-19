@@ -28,13 +28,13 @@ func (_m *RacesRepo) Init() error {
 	return r0
 }
 
-// List provides a mock function with given fields: filter
-func (_m *RacesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race, error) {
-	ret := _m.Called(filter)
+// List provides a mock function with given fields: filter, order
+func (_m *RacesRepo) List(filter *racing.ListRacesRequestFilter, order *racing.ListRacesRequestOrder) ([]*racing.Race, error) {
+	ret := _m.Called(filter, order)
 
 	var r0 []*racing.Race
-	if rf, ok := ret.Get(0).(func(*racing.ListRacesRequestFilter) []*racing.Race); ok {
-		r0 = rf(filter)
+	if rf, ok := ret.Get(0).(func(*racing.ListRacesRequestFilter, *racing.ListRacesRequestOrder) []*racing.Race); ok {
+		r0 = rf(filter, order)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*racing.Race)
@@ -42,8 +42,8 @@ func (_m *RacesRepo) List(filter *racing.ListRacesRequestFilter) ([]*racing.Race
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*racing.ListRacesRequestFilter) error); ok {
-		r1 = rf(filter)
+	if rf, ok := ret.Get(1).(func(*racing.ListRacesRequestFilter, *racing.ListRacesRequestOrder) error); ok {
+		r1 = rf(filter, order)
 	} else {
 		r1 = ret.Error(1)
 	}

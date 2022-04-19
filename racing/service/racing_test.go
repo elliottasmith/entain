@@ -12,7 +12,7 @@ import (
 	"syreclabs.com/go/faker"
 )
 
-func TestListRacesFilterVisibleTrue(t *testing.T) {
+func TestListRaces(t *testing.T) {
 	// Create a new mock RacesRepo
 	mockRacingRepo := new(mocks.RacesRepo)
 
@@ -30,6 +30,8 @@ func TestListRacesFilterVisibleTrue(t *testing.T) {
 	req := &racing.ListRacesRequest{
 		Filter: &racing.ListRacesRequestFilter{
 		},
+		Order: &racing.ListRacesRequestOrder{
+		},
 	}
 	
 	// Create a mock race to be returned from the list function
@@ -45,7 +47,7 @@ func TestListRacesFilterVisibleTrue(t *testing.T) {
 	}
 
 	// Create a mock result for the list function to return 1 race.
-	mockRacingRepo.On("List", req.Filter).Return(mockRace, nil).Times(1)
+	mockRacingRepo.On("List", req.Filter, req.Order).Return(mockRace, nil).Times(1)
 
 	// Call the list races service with the context and request
 	res, err := rs.ListRaces(ctx, req)

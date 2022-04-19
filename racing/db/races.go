@@ -19,6 +19,9 @@ type RacesRepo interface {
 
 	// List will return a list of races.
 	List(filter *racing.ListRacesRequestFilter, order *racing.ListRacesRequestOrder) ([]*racing.Race, error)
+
+	// Get will return a single race.
+	Get(id *int64) (*racing.Race, error)
 }
 
 type racesRepo struct {
@@ -62,6 +65,23 @@ func (r *racesRepo) List(filter *racing.ListRacesRequestFilter, order *racing.Li
 	}
 
 	return r.scanRaces(rows)
+}
+
+func (r *racesRepo) Get(id *int64) (*racing.Race, error) {
+	var (
+		query string
+		args  []interface{}
+	)
+
+	query = getRaceQueries()[racesList]
+
+	query += " WHERE id = ?"
+
+	args = append(args, id)
+
+	row := r.db.QueryRow(query, args...)
+
+	return r.scanRace(row)
 }
 
 func (r *racesRepo) applyFilter(query string, filter *racing.ListRacesRequestFilter) (string, []interface{}) {
@@ -117,12 +137,10 @@ func (m *racesRepo) scanRaces(rows *sql.Rows,) ([]*racing.Race, error) {
 			return nil, err
 		}
 
-		ts, err := ptypes.TimestampProto(advertisedStart)
-		if err != nil {
+		// Moved set start time to function to prevent duplication
+		if err := setStartTime(&race, advertisedStart); err != nil {
 			return nil, err
 		}
-
-		race.AdvertisedStartTime = ts
 
 		setStatus(&race, advertisedStart)
 
@@ -130,6 +148,39 @@ func (m *racesRepo) scanRaces(rows *sql.Rows,) ([]*racing.Race, error) {
 	}
 
 	return races, nil
+}
+
+func (m *racesRepo) scanRace(row *sql.Row) (*racing.Race, error) {
+	var race racing.Race
+	var advertisedStart time.Time
+
+	if err := row.Scan(&race.Id, &race.MeetingId, &race.Name, &race.Number, &race.Visible, &advertisedStart); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	if err := setStartTime(&race, advertisedStart); err != nil {
+		return nil, err
+	}
+
+	setStatus(&race, advertisedStart)
+
+	return &race, nil
+}
+
+func setStartTime(race *racing.Race, startTime time.Time) (error) {
+	// Sets race start time to proto timestamp format
+	ts, err := ptypes.TimestampProto(startTime)
+	if err != nil {
+		return err
+	}
+
+	race.AdvertisedStartTime = ts
+
+	return nil
 }
 
 func setStatus(race *racing.Race, startTime time.Time) {
